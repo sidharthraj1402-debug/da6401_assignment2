@@ -1,46 +1,187 @@
-# DA6401 Assignment-2 Skeleton Guide
+# DA6401 Assignment 2 — Visual Perception Pipeline
 
-This repository is an instructional skeleton for building the complete visual perception pipeline on Oxford-IIIT Pet.
+Multi-task visual perception on the Oxford-IIIT Pet dataset using a shared VGG11 backbone.
+Covers classification, bounding box localization, semantic segmentation, and a unified multi-task model.
 
+**GitHub Repository:** https://github.com/your-username/da6401-assignment-2
 
-### ADDITIONAL INSTRUCTIONS FOR ASSIGNMENT2:
-- Ensure VGG11 is implemented according to the official paper(https://arxiv.org/abs/1409.1556). The only difference being injecting BatchNorm and CustomDropout layers is your design choice.
-- Train all the networks on normalized images as input (as the test set given by autograder will be normalized images).
-- The output of Localization model = [x_center, y_center, width, height] all these numbers are with respect to image coordinates, in pixel space (not normalized)
-- Train the object localization network with the following loss function: MSE + custom_IOU_loss.
-- Make sure the custom_IOU loss is in range: [0,1]
-- In the custom IOU loss, you have to implement all the two reduction types: ["mean", "sum"] and the default reduction type should be "mean". You may include any other reduction type as well, which will help your network learn better.
-- multitask.py shd load the saved checkpoints (classifier.pth, localizer.pth, unet.pth), initialize the shared backbone and heads with these trained weights and do prediction.
-- Keep paths as relative paths for loading in multitask.py
-- Assume input image size is fixed according to vgg11 paper(can be hardcoded need not pass as args)
-- Stick to the arguments of the functions and classes given in the github repo, if you include any additional arguments make sure they always have some default value.
-- Do not import any other python packages apart from the ones mentioned in assignment pdf, if you do so the autograder will instantly crash and your submission will not be evaluated.
-- The following classes will be used by autograder: 
-    ```
-        from models.vgg11 import VGG11
-        from models.layers import CustomDropout
-        from losses.iou_loss import IoULoss
-        from multitask import MultiTaskPerceptionModel
-    ```
-- The submission link for this assignment will be available by Saturday(04/04/2026) on gradescope
-
-
-
-
-
-### GENERAL INSTRUCTIONS:
-- From this assignment onwards, if we find any wandb report which is private/inaccessible while grading, there wont be any second chance, that submission will be marked 0 for wandb marks.
-- The entireity of plots presented in the wandb report should be interactive and logged in the wandb project. Any screenshot or images of plots will straightly be marked 0 for that question.
-- Gradescope offers an option to activate whichever submission you want to, and that submission will be used for evaluation. Under any circumstances, no requests to be raised to TAs to activate any of your prior submissions. It is the student's responsibility to do so(if required) before submission deadline.
-- Assignment2 discussion forum has been opened on moodle for any doubt clarification/discussion.   
-
-
-
-
-## Contact
-
-For questions or issues, please contact the teaching staff or post on the course forum.
+**W&B Report:** https://wandb.ai/your-username/da6401-assignment-2/reports/your-report-link
 
 ---
 
-Good luck with your implementation!
+## Tasks
+
+| Task | Description | Model |
+|------|-------------|-------|
+| 1 | Breed classification (37 classes) | VGG11 + FC head |
+| 2 | Bounding box localization | VGG11 + regression head |
+| 3 | Semantic segmentation (3 classes) | VGG11 U-Net |
+| 4 | Unified multi-task inference | Shared backbone + 3 heads |
+
+---
+
+## Project Structure
+
+```
+da6401_assignment_2/
+├── data/
+│   └── pets_dataset.py       # Oxford-IIIT Pet dataset loader
+├── models/
+│   ├── layers.py             # CustomDropout
+│   ├── vgg11.py              # VGG11 encoder (shared backbone)
+│   ├── classification.py     # Task 1 — VGG11Classifier
+│   ├── localization.py       # Task 2 — VGG11Localizer
+│   ├── segmentation.py       # Task 3 — VGG11UNet
+│   └── multitask.py          # Task 4 — MultiTaskPerceptionModel
+├── losses/
+│   └── iou_loss.py           # Custom IoU loss
+├── train.py                  # Training script (all tasks)
+├── inference.py              # Evaluation + single image inference
+└── README.md
+```
+
+---
+
+## Dataset Setup
+
+Download the Oxford-IIIT Pet dataset and place it as:
+
+```
+/path/to/dataset/
+├── images/
+├── annotations/
+│   ├── list.txt
+│   ├── trainval.txt
+│   ├── test.txt
+│   ├── trimaps/
+│   └── xmls/
+```
+
+---
+
+## Setup
+
+```bash
+pip install torch torchvision wandb scikit-learn gdown
+```
+
+---
+
+## Training
+
+All three models must be trained sequentially — localization and segmentation both load the classifier encoder weights.
+
+### Task 1 — Classification
+
+```bash
+python train.py \
+  --task classification \
+  --data_root /path/to/dataset \
+  --batch_size 64 \
+  --num_epochs 30 \
+  --learning_rate 1e-4 \
+  --weight_decay 5e-4 \
+  --save_dir ./checkpoints
+```
+
+### Task 2 — Localization
+
+Run after classification. Loads classifier encoder weights and freezes them, trains only the regression head.
+
+```bash
+python train.py \
+  --task localization \
+  --data_root /path/to/dataset \
+  --batch_size 64 \
+  --num_epochs 30 \
+  --learning_rate 1e-4 \
+  --weight_decay 5e-4 \
+  --save_dir ./checkpoints
+```
+
+### Task 3 — Segmentation
+
+Run after classification. Loads classifier encoder weights, trains the U-Net decoder on top.
+
+```bash
+python train.py \
+  --task segmentation \
+  --data_root /path/to/dataset \
+  --batch_size 32 \
+  --num_epochs 30 \
+  --learning_rate 1e-4 \
+  --weight_decay 5e-4 \
+  --freeze_strategy frozen \
+  --save_dir ./checkpoints
+```
+
+`--freeze_strategy` options: `frozen` (freeze all encoder layers), `partial` (freeze first 3 blocks), `full` (fine-tune entire encoder).
+
+---
+
+## Inference
+
+### Evaluate on full dataset split
+
+```bash
+python inference.py \
+  --data_root /path/to/dataset \
+  --split test \
+  --classifier_path classifier.pth \
+  --localizer_path localizer.pth \
+  --unet_path unet.pth
+```
+
+### Single image prediction
+
+```bash
+python inference.py \
+  --image_path /path/to/image.jpg \
+  --classifier_path classifier.pth \
+  --localizer_path localizer.pth \
+  --unet_path unet.pth
+```
+
+---
+
+## Architecture
+
+### VGG11 Encoder (shared backbone)
+
+5 blocks of Conv → BN → ReLU → MaxPool. Output: `[B, 512, 7, 7]` for 224×224 input.
+
+```
+Input [B, 3, 224, 224]
+  block1 → [B,  64, 112, 112]   (s1)
+  block2 → [B, 128,  56,  56]   (s2)
+  block3 → [B, 256,  28,  28]   (s3)
+  block4 → [B, 512,  14,  14]   (s4)
+  block5 → [B, 512,   7,   7]   (s5 / bottleneck)
+```
+
+### U-Net Decoder (Task 3)
+
+ConvTranspose2d upsampling at each stage, skip connections concatenated from matching encoder blocks.
+
+```
+s5 → upsample5 → cat(s4) → dec5 → [B, 512, 14, 14]
+   → upsample4 → cat(s3) → dec4 → [B, 256, 28, 28]
+   → upsample3 → cat(s2) → dec3 → [B, 128, 56, 56]
+   → upsample2 → cat(s1) → dec2 → [B,  64, 112, 112]
+   → upsample1 →           dec1 → [B,  64, 224, 224]
+   → output (1×1 conv)          → [B,   3, 224, 224]
+```
+
+### Multi-task Model (Task 4)
+
+Single shared encoder (classifier backbone) feeds all three heads simultaneously. Checkpoints downloaded from Google Drive at init.
+
+---
+
+## Loss Functions
+
+| Task | Loss |
+|------|------|
+| Classification | CrossEntropyLoss |
+| Localization | MSELoss + IoULoss (combined) |
+| Segmentation | CrossEntropyLoss (per-pixel) |
