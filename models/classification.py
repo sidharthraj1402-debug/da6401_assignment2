@@ -12,16 +12,17 @@ class VGG11Classifier(nn.Module):
 
     # Flatten -> FC(25088->4096) -> BN -> ReLU -> Dropout -> FC(4096->4096) -> BN -> ReLU -> Dropout -> FC(4096->num_classes)
 
-    def __init__(self, num_classes: int = 37, in_channels: int = 3, dropout_p: float = 0.5):
+    def __init__(self, num_classes: int = 37, in_channels: int = 3, dropout_p: float = 0.5, use_bn: bool = True):
         """
         Initialize the VGG11Classifier model.
         Args:
             num_classes: Number of output classes.
             in_channels: Number of input channels.
             dropout_p: Dropout probability for the classifier head.
+            use_bn: Whether to use batch normalization.
         """
         super().__init__()
-        self.encoder = VGG11Encoder(in_channels=in_channels) # outputs [B, 512, H/32, W/32]
+        self.encoder = VGG11Encoder(in_channels=in_channels, use_bn=use_bn) # outputs [B, 512, H/32, W/32]
         self.classifier = nn.Sequential(
             nn.AdaptiveAvgPool2d((7, 7)), # pool to fixed [B, 512, 7, 7] regardless of input size
             nn.Flatten(), # [B, 512, 7, 7] -> [B, 25088]

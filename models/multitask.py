@@ -24,11 +24,11 @@ class MultiTaskPerceptionModel(nn.Module):
         """
         super().__init__()   
 
-        gdown.download(id="1TuE3_lKjVkw2KfuKcz33r84qZzP1wLw2",output=classifier_path,quiet=False)
+        gdown.download(id="1TuE3_lKjVkw2KfuKcz33r84qZzP1wLw2",output=classifier_path,quiet=False) 
         gdown.download(id="1wslZpQL3IKWeEyaMO6h_66nKbeyAXbZ8",output=localizer_path,quiet=False)
         gdown.download(id="1X5-ss2SHHRjyJS3WTdrejaoB-U8eUXM4",output=unet_path,quiet=False)
         
-        classifier = VGG11Classifier(num_classes=num_breeds, in_channels=in_channels)
+        classifier = VGG11Classifier(num_classes=num_breeds, in_channels=in_channels) 
         localizer = VGG11Localizer(in_channels=in_channels)
         unet = VGG11UNet(num_classes=seg_classes, in_channels=in_channels)
 
@@ -42,14 +42,15 @@ class MultiTaskPerceptionModel(nn.Module):
         load_weights(localizer, localizer_path)
         load_weights(unet, unet_path)
 
-        # Use the encoder from the classifier as the shared backbone for all three tasks
+        # the encoder from the classifier as the shared backbone for all three tasks
         self.encoder = classifier.encoder
 
-        self.classifier_head = classifier.classifier
-        self.localizer_head = localizer.regression_head
+        self.classifier_head = classifier.classifier # classifier 
+        self.localizer_head = localizer.regression_head # localizer 
         self.image_size = localizer.image_size # needed to scale sigmoid output (0,1) -> pixel coords (0,224)
        
-        self.upsample5 = unet.upsample5
+        # unet decoder for segmnentation
+        self.upsample5 = unet.upsample5 
         self.dec5 = unet.dec5
         self.upsample4 = unet.upsample4
         self.dec4 = unet.dec4

@@ -51,7 +51,7 @@ class OxfordIIITPetDataset(Dataset):
         else:
             raise FileNotFoundError("One or more required directories (images, trimaps, xmls) are missing in the specified root directory.")
         
-    def __len__(self) -> int:
+    def __len__(self) -> int: 
         return len(self.image_ids)
     
     # convert xml bbox to cx,cy,w,h
@@ -120,7 +120,7 @@ class OxfordIIITPetDataset(Dataset):
             trimap = F.hflip(trimap)
             bbox[0] = self.size - bbox[0] # mirror x_center after horizontal flip
 
-        # random crop disabled — bbox adjustment unreliable with augmentation
+        # random crop disabled — bbox adjustment unreliable with augmentation.
         #if self.augment and torch.rand(1).item() > 0.5: # apply random crop with a probability of 0.5
             #i,j,h,w = T.RandomCrop.get_params(image, output_size=(196,196)) # get random crop parameters for cropping the image and trimap to the same random location, we will use these parameters to crop both the image and the trimap to ensure that they are still aligned after cropping.
             #image = F.crop(image, i, j, h, w) # crop the image

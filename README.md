@@ -3,9 +3,9 @@
 Multi-task visual perception on the Oxford-IIIT Pet dataset using a shared VGG11 backbone.
 Covers classification, bounding box localization, semantic segmentation, and a unified multi-task model.
 
-**GitHub Repository:** 
+**GitHub Repository:** https://github.com/sidharthraj1402-debug/da6401_assignment2.git
 
-**W&B Report:** 
+**W&B Report:** https://wandb.ai/ns26z087-indian-institute-of-technology-madras/da6401-assignment-2/reports/DA6401-Assignment2--VmlldzoxNjQ4MzI2NA?accessToken=wlf2u5u9eehoh5m1freoj6oxl2hszfh9wkp9z3d21g7hauaukdmbif1spzp7ago2
 
 ---
 

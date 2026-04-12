@@ -99,17 +99,16 @@ class VGG11UNet(nn.Module):
         output = self.output(d1) # apply final output layer to get [B, num_classes, H, W]
         return output
         
-#Encoder (contracting path)
+#Encoder 
 
 # Input [B, 3, 224, 224]
-#   -> block1 -> [B,  64, 112, 112]  ← saved as s1
-#   -> block2 -> [B, 128,  56,  56]  ← saved as s2
-#   -> block3 -> [B, 256,  28,  28]  ← saved as s3
-#   -> block4 -> [B, 512,  14,  14]  ← saved as s4
-#   -> block5 -> [B, 512,   7,   7]  ← bottleneck (s5)
+#   -> block1 -> [B,  64, 112, 112]  <- saved as s1
+#   -> block2 -> [B, 128,  56,  56]  <- saved as s2
+#   -> block3 -> [B, 256,  28,  28]  <- saved as s3
+#   -> block4 -> [B, 512,  14,  14]  <- saved as s4
+#   -> block5 -> [B, 512,   7,   7]  <- bottleneck (s5)
 
-# Decoder (expansive path)
-# Each stage does three things:
+# Decoder 
 
 # upX — ConvTranspose2d doubles the spatial size (learnable upsampling)
 # torch.cat — concatenates with the matching encoder skip along the channel dimension, restoring spatial detail that was lost during pooling
