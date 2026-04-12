@@ -47,7 +47,6 @@ da6401_assignment_2/
 Download the Oxford-IIIT Pet dataset and place it as:
 
 ```
-/path/to/dataset/
 ├── images/
 ├── annotations/
 │   ├── list.txt
@@ -62,7 +61,7 @@ Download the Oxford-IIIT Pet dataset and place it as:
 ## Setup
 
 ```bash
-pip install torch torchvision wandb scikit-learn gdown
+pip install -r requirements.txt
 ```
 
 ---
@@ -76,7 +75,7 @@ All three models must be trained sequentially — localization and segmentation 
 ```bash
 python train.py \
   --task classification \
-  --data_root /path/to/dataset \
+  --data_root data \
   --batch_size 64 \
   --num_epochs 30 \
   --learning_rate 1e-4 \
@@ -91,7 +90,7 @@ Run after classification. Loads classifier encoder weights and freezes them, tra
 ```bash
 python train.py \
   --task localization \
-  --data_root /path/to/dataset \
+  --data_root data \
   --batch_size 64 \
   --num_epochs 30 \
   --learning_rate 1e-4 \
@@ -106,7 +105,7 @@ Run after classification. Loads classifier encoder weights, trains the U-Net dec
 ```bash
 python train.py \
   --task segmentation \
-  --data_root /path/to/dataset \
+  --data_root data \
   --batch_size 32 \
   --num_epochs 30 \
   --learning_rate 1e-4 \
@@ -125,7 +124,7 @@ python train.py \
 
 ```bash
 python inference.py \
-  --data_root /path/to/dataset \
+  --data_root data \
   --split test \
   --classifier_path classifier.pth \
   --localizer_path localizer.pth \
@@ -136,7 +135,7 @@ python inference.py \
 
 ```bash
 python inference.py \
-  --image_path /path/to/image.jpg \
+  --image_path image.jpg \
   --classifier_path classifier.pth \
   --localizer_path localizer.pth \
   --unet_path unet.pth
